@@ -5,8 +5,8 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import './App.css';
 
 // Use environment variable for API and WebSocket URLs
-const API_URL = process.env.REACT_APP_API_URL || 'https://www.sidrathi.dev/server';
-const WS_URL = process.env.REACT_APP_WS_URL || 'wss://www.sidrathi.dev/server';
+const API_URL = process.env.REACT_APP_API_URL || 'https://www.sidrathi.dev/server/';
+const WS_URL = process.env.REACT_APP_WS_URL || 'wss://www.sidrathi.dev/server/';
 
 // Use the requested bus icon
 const busIcon = new L.Icon({
@@ -73,6 +73,9 @@ function useWebSocket(url, onMessage) {
       messageQueue.current.push(message);
     }
   }, []);
+useEffect(() => {
+  document.title = "Bus Tracking Dashboard";
+}, []);
 
   const connect = useCallback(() => {
     try {
