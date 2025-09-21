@@ -198,6 +198,7 @@ export default function Dashboard() {
   const [userLocation, setUserLocation] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showAllBuses, setShowAllBuses] = useState(false);
   const lastUpdateTime = useRef({});
   const MIN_UPDATE_INTERVAL = 5000; // Only update every 5 seconds
 
@@ -339,7 +340,7 @@ export default function Dashboard() {
         <select
           id="bus-select"
           value={selectedBus}
-          onChange={e => setSelectedBus(e.target.value)}
+          onChange={e => { setSelectedBus(e.target.value); setShowAllBuses(false); }}
           disabled={isLoading || Object.keys(busLocations).length === 0}
         >
           <option value="" disabled>Select Bus</option>
@@ -349,6 +350,11 @@ export default function Dashboard() {
         </select>
         {isLoading && <span className="loading-indicator">Loading...</span>}
       </div>
+
+      {/* Toggle button to show all buses */}
+      <button onClick={() => setShowAllBuses(prev => !prev)} className="toggle-button">
+        {showAllBuses ? "Show Selected Bus Only" : "Show All Buses"}
+      </button>
 
       <div className="map-container">
         <div className="map-wrapper">
@@ -366,23 +372,48 @@ export default function Dashboard() {
 
             <MapNavigation userLocation={userLocation} busPosition={selectedBusPosition} />
 
-            {selectedBus && busLocations[selectedBus] && (
-              <Marker
-                position={[busLocations[selectedBus].latitude, busLocations[selectedBus].longitude]}
-                icon={busIcon}
-              >
-                <Popup>
-                  <div className="bus-info">
-                    <h3>Bus {busLocations[selectedBus].bus_id}</h3>
-                    <p><b>Status:</b> {busLocations[selectedBus].status}</p>
-                    {busLocations[selectedBus].status === 'stopped' && busLocations[selectedBus].issue && (
-                      <p><b>Issue:</b> {busLocations[selectedBus].issue}</p>
-                    )}
-                    <p><b>Last Updated:</b> {busLocations[selectedBus].timestamp?.toLocaleTimeString?.()}</p>
-                  </div>
-                </Popup>
-              </Marker>
-            )}
+            {/* Render all buses or selected bus markers */}
+            {
+              showAllBuses
+                ? Object.values(busLocations).map(bus => (
+                  <Marker
+                    key={bus.bus_id}
+                    position={[bus.latitude, bus.longitude]}
+                    icon={busIcon}
+                    eventHandlers={{
+                      click: () => setSelectedBus(bus.bus_id),
+                    }}
+                  >
+                    <Popup>
+                      <div className="bus-info">
+                        <h3>Bus {bus.bus_id}</h3>
+                        <p><b>Status:</b> {bus.status}</p>
+                        {bus.status === 'stopped' && bus.issue && (
+                          <p><b>Issue:</b> {bus.issue}</p>
+                        )}
+                        <p><b>Last Updated:</b> {bus.timestamp?.toLocaleTimeString?.()}</p>
+                      </div>
+                    </Popup>
+                  </Marker>
+                ))
+                : selectedBus && busLocations[selectedBus] && (
+                  <Marker
+                    position={[busLocations[selectedBus].latitude, busLocations[selectedBus].longitude]}
+                    icon={busIcon}
+                  >
+                    <Popup>
+                      <div className="bus-info">
+                        <h3>Bus {busLocations[selectedBus].bus_id}</h3>
+                        <p><b>Status:</b> {busLocations[selectedBus].status}</p>
+                        {busLocations[selectedBus].status === 'stopped' && busLocations[selectedBus].issue && (
+                          <p><b>Issue:</b> {busLocations[selectedBus].issue}</p>
+                        )}
+                        <p><b>Last Updated:</b> {busLocations[selectedBus].timestamp?.toLocaleTimeString?.()}</p>
+                      </div>
+                    </Popup>
+                  </Marker>
+                )
+            }
 
             {userLocation && (
               <Marker position={userLocation} icon={userIcon}>
