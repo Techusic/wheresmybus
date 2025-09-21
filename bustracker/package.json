@@ -26,6 +26,8 @@
       "react-app/jest"
     ]
   },
+
+  "homepage": "https://sidrathi.dev/bustracker",
   "browserslist": {
     "production": [
       ">0.2%",
@@ -37,5 +39,12 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "description": "This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).",
+  "main": "index.js",
+  "author": "Raghav",
+  "license": "ISC",
+  "devDependencies": {
+    "cross-env": "^10.0.0"
   }
 }

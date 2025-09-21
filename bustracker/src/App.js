@@ -5,8 +5,8 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import './App.css';
 
 // Use environment variable for API and WebSocket URLs
-const API_URL = process.env.REACT_APP_API_URL || 'http://152.67.22.253:4000'; // Updated to your current IP
-const WS_URL = process.env.REACT_APP_WS_URL || 'ws://152.67.22.253:4000'; // Updated to your current IP
+const API_URL = process.env.REACT_APP_API_URL || 'https://www.sidrathi.dev/server';
+const WS_URL = process.env.REACT_APP_WS_URL || 'wss://www.sidrathi.dev/server';
 
 // Use the requested bus icon
 const busIcon = new L.Icon({

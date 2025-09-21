@@ -1,6 +1,5 @@
-// Use environment variables for configuration
-const SERVER_IP = process.env.SERVER_IP || '0.0.0.0'; // Changed to 0.0.0.0 to accept connections from any network
-const PORT = process.env.PORT || 4000;
+// Configure server to listen on all interfaces
+const PORT = 4000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/busTracking';
 
 const express = require('express');
@@ -12,19 +11,19 @@ const zlib = require('zlib');
 
 const app = express();
 app.use(cors());
-app.use(express.json({ limit: '10kb' })); // Limit request size
+app.use(express.json({ limit: '10kb' }));
 
-// Connect to MongoDB with better error handling
+// Connect to MongoDB
 mongoose.connect(MONGODB_URI, { 
   useNewUrlParser: true, 
   useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 5000 // Timeout after 5s instead of 30s
+  serverSelectionTimeoutMS: 5000
 }).catch(err => {
   console.error('MongoDB connection error:', err);
   process.exit(1);
 });
 
-// Replace capped collection with regular collection + TTL
+// Schema with TTL for automatic data clearance after 24 hours
 const busLocationSchema = new mongoose.Schema({
   bus_id: String,
   latitude: Number,
@@ -36,15 +35,15 @@ const busLocationSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Add TTL index to automatically remove old documents
-busLocationSchema.index({ createdAt: 1 }, { expireAfterSeconds: 86400 }); // 24 hours
+// TTL index to automatically remove documents after 24 hours
+busLocationSchema.index({ createdAt: 1 }, { expireAfterSeconds: 86400 });
 
 const BusLocation = mongoose.model('BusLocation', busLocationSchema);
 
 // Cache for latest locations
 let latestLocationsCache = null;
 let cacheTimestamp = 0;
-const CACHE_DURATION = 5000; // 5 seconds
+const CACHE_DURATION = 5000;
 
 // API to get latest bus locations with caching
 app.get('/api/locations', async (req, res) => {
@@ -75,7 +74,6 @@ app.get('/api/locations', async (req, res) => {
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ 
   server,
-  host: '0.0.0.0', // Listen on all interfaces
   perMessageDeflate: {
     zlibDeflateOptions: {
       chunkSize: 1024,
@@ -109,7 +107,7 @@ wss.on('connection', ws => {
   clients.add(ws);
 
   ws.on('message', async message => {
-    console.log('Received message:', message); // Debug log
+    console.log('Received message:', message);
     try {
       const data = JSON.parse(message);
       const allowedBusIds = Array.from({length: 10}, (_, i) => String(101 + i));
@@ -146,7 +144,7 @@ wss.on('connection', ws => {
         broadcastUpdate(updated);
       }
     } catch (e) {
-      // Invalid message
+      console.error('Error processing message:', e);
     }
   });
 
@@ -175,6 +173,8 @@ async function broadcastUpdate(data) {
   }
 }
 
+// Listen on all network interfaces
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Backend server running on all interfaces:${PORT}`);
+  console.log(`Backend server running on port ${PORT}`);
+  console.log(`Accessible via your server's IP addresses (including 152.67.22.253)`);
 });
